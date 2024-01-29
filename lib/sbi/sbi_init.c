@@ -223,6 +223,34 @@ static void wake_coldboot_harts(struct sbi_scratch *scratch, u32 hartid)
 	spin_unlock(&coldboot_lock);
 }
 
+#ifdef K230_LITTLE_CORE
+
+#define CSR_MXSTATUS     0x7c0
+#define CSR_MCOR         0x7c2
+#define CSR_MHCR         0x7c1
+#define CSR_MCCR2        0x7c3
+#define CSR_MHINT        0x7c5
+#define CSR_MXSTATUS     0x7c0
+#define CSR_PLIC_BASE    0xfc1
+#define CSR_MRMR         0x7c6
+#define CSR_MRVBR        0x7c7
+#define CSR_MSMPR        0x7f3
+#define MISA_VECTOR_B    (1<<('V'-'A'))
+
+static void k230_hart_init(void)
+{
+    if(csr_read(CSR_MISA) & MISA_VECTOR_B)
+    {
+        csr_write(CSR_MHCR,  0x11ff);
+        csr_write(CSR_MCOR,  0x70013);
+        csr_write(CSR_MSMPR, 0x1);
+        csr_write(CSR_MCCR2, 0xe0410009);
+        csr_write(CSR_MHINT, 0x16e30c);
+    }
+    csr_write(CSR_MXSTATUS, 0x438000);
+}
+#endif
+
 static unsigned long init_count_offset;
 
 static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
@@ -317,12 +345,13 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
 #endif
 
 #ifdef K230_LITTLE_CORE
-	 rc = sbi_hart_pmp_configure(scratch);
-	 if (rc) {
+	k230_hart_init();
+	rc = sbi_hart_pmp_configure(scratch);
+	if (rc) {
 	 	sbi_printf("%s: PMP configure failed (error %d)\n",
 	 		   __func__, rc);
 	 	sbi_hart_hang();
-	 }
+	}
 #endif
 	/*
 	 * Note: Platform final initialization should be last so that
