@@ -38,3 +38,6 @@ else
   FW_PAYLOAD_OFFSET=0x200000
 endif
 FW_PAYLOAD_FDT_ADDR=$(FW_JUMP_FDT_ADDR)
+
+# add CanMV230.dtb
+FW_FDT_PATH=$(platform_build_dir)/canmv230.dtb

@@ -235,6 +235,7 @@ static void wake_coldboot_harts(struct sbi_scratch *scratch, u32 hartid)
 #define CSR_MRMR         0x7c6
 #define CSR_MRVBR        0x7c7
 #define CSR_MSMPR        0x7f3
+#define CSR_MENVCFG      0x30a
 #define MISA_VECTOR_B    (1<<('V'-'A'))
 
 static void k230_hart_init(void)
@@ -247,7 +248,10 @@ static void k230_hart_init(void)
         csr_write(CSR_MCCR2, 0xe0410009);
         csr_write(CSR_MHINT, 0x16e30c);
     }
+
+    /* use standard PTE format */
     csr_write(CSR_MXSTATUS, 0x438000);
+    csr_set(CSR_MENVCFG, 1ul << 62);
 }
 #endif
 
